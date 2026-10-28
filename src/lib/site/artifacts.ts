@@ -1,0 +1,63 @@
+import { createHash } from "node:crypto";
+import { copyFile, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import path from "node:path";
+import type { CompanyProfile, SiteLanguage, SiteTheme } from "@/lib/domain/company";
+import { renderSiteFiles } from "./render";
+
+export function artifactsRoot(): string {
+  return path.resolve(/*turbopackIgnore: true*/ process.env.ARTIFACTS_PATH || path.join(process.cwd(), "data", "sites"));
+}
+
+export function resolveArtifactPath(storedPath: string): string {
+  const root = artifactsRoot();
+  const resolved = path.resolve(storedPath);
+  if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`)) throw new Error("Artifact path escapes storage root");
+  return resolved;
+}
+
+export async function artifactExists(directory: string): Promise<boolean> {
+  try {
+    return (await stat(path.join(resolveArtifactPath(directory), "index.html"))).isFile();
+  } catch {
+    return false;
+  }
+}
+
+export async function createSiteArtifact(
+  id: string,
+  profile: CompanyProfile,
+  language: SiteLanguage,
+  theme: SiteTheme,
+): Promise<{ artifactPath: string; checksum: string }> {
+  const root = artifactsRoot();
+  await mkdir(root, { recursive: true });
+  const finalPath = path.join(/*turbopackIgnore: true*/ root, id);
+  const temporaryPath = path.join(root, `.${id}-${crypto.randomUUID()}`);
+  await mkdir(path.join(temporaryPath, "assets"), { recursive: true });
+  try {
+    const files = renderSiteFiles(profile, language, theme);
+    const hash = createHash("sha256");
+    for (const [name, content] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
+      await writeFile(path.join(temporaryPath, name), content, "utf8");
+      hash.update(name).update("\0").update(content);
+    }
+    const sourcePhoto = path.join(process.cwd(), "public", profile.team[0].photo.asset.replace(/^\//, ""));
+    const targetPhoto = path.join(temporaryPath, "assets", "team.png");
+    await copyFile(sourcePhoto, targetPhoto);
+    hash.update("assets/team.png").update("\0").update(await readFile(targetPhoto));
+    await rename(temporaryPath, finalPath);
+    return { artifactPath: finalPath, checksum: hash.digest("hex") };
+  } catch (error) {
+    await rm(temporaryPath, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+export const PREVIEW_FILES: Record<string, string> = {
+  "index.html": "text/html; charset=utf-8",
+  "product.html": "text/html; charset=utf-8",
+  "company.html": "text/html; charset=utf-8",
+  "styles.css": "text/css; charset=utf-8",
+  "favicon.svg": "image/svg+xml",
+  "assets/team.png": "image/png",
+};

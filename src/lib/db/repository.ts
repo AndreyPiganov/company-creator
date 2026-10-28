@@ -143,7 +143,7 @@ export async function insertSiteVersion(input: {
     artifactPath: input.artifactPath,
     checksum: input.checksum,
     createdAt: new Date().toISOString(),
-  });
+  }).onConflictDoNothing();
 }
 
 export async function nextSiteVersion(companyId: string): Promise<number> {
