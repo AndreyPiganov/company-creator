@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /app/data/company-creator.sqlite
+      ARTIFACTS_PATH: /app/data/sites
+      APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - company_creator_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  company_creator_data:

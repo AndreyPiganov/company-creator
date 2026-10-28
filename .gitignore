@@ -1,0 +1,27 @@
+# Local task source
+ТЗ.txt
+
+# Dependencies and framework output
+node_modules/
+.next/
+out/
+coverage/
+
+# Runtime data and generated artifacts
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Secrets and local environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
