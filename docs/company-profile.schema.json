@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://company-creator.local/schemas/company-profile.schema.json",
+  "title": "CompanyProfile",
+  "description": "Canonical bilingual profile of a fictional German B2B AI company.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "status",
+    "revision",
+    "brandName",
+    "legalName",
+    "contact",
+    "businessDirection",
+    "serviceType",
+    "size",
+    "history",
+    "specialisation",
+    "audience",
+    "customerProblem",
+    "product",
+    "faq",
+    "team",
+    "disclaimer",
+    "generation"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "format": "uuid" },
+    "status": { "enum": ["draft", "approved"] },
+    "revision": { "type": "integer", "minimum": 1 },
+    "brandName": { "type": "string", "minLength": 2, "maxLength": 80 },
+    "legalName": { "type": "string", "minLength": 3, "maxLength": 120 },
+    "contact": { "$ref": "#/$defs/contact" },
+    "businessDirection": { "const": "b2b-ai-investment-research" },
+    "serviceType": {
+      "enum": [
+        "investment-due-diligence",
+        "market-intelligence",
+        "portfolio-monitoring",
+        "document-data-analysis"
+      ]
+    },
+    "size": { "enum": ["small", "medium"] },
+    "history": { "$ref": "#/$defs/localisedText" },
+    "specialisation": { "$ref": "#/$defs/localisedText" },
+    "audience": { "$ref": "#/$defs/localisedText" },
+    "customerProblem": { "$ref": "#/$defs/localisedText" },
+    "product": { "$ref": "#/$defs/product" },
+    "faq": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/faqItem" }
+    },
+    "team": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/teamMember" }
+    },
+    "disclaimer": { "$ref": "#/$defs/localisedText" },
+    "generation": { "$ref": "#/$defs/generation" }
+  },
+  "$defs": {
+    "localisedText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ru", "de"],
+      "properties": {
+        "ru": { "type": "string", "minLength": 2, "maxLength": 4000 },
+        "de": { "type": "string", "minLength": 2, "maxLength": 4000 }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["country", "city", "address", "phone", "email"],
+      "properties": {
+        "country": { "const": "DE" },
+        "city": { "enum": ["Berlin", "München", "Frankfurt am Main", "Hamburg", "Köln"] },
+        "address": { "type": "string", "minLength": 8, "maxLength": 160 },
+        "phone": { "type": "string", "pattern": "^\\+49 [0-9 ]{7,18}$" },
+        "email": { "type": "string", "format": "email", "maxLength": 160 }
+      }
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "summary", "inputs", "process", "output", "limitations"],
+      "properties": {
+        "name": { "$ref": "#/$defs/localisedText" },
+        "summary": { "$ref": "#/$defs/localisedText" },
+        "inputs": { "$ref": "#/$defs/localisedText" },
+        "process": { "$ref": "#/$defs/localisedText" },
+        "output": { "$ref": "#/$defs/localisedText" },
+        "limitations": { "$ref": "#/$defs/localisedText" }
+      }
+    },
+    "faqItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "answer"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "question": { "$ref": "#/$defs/localisedText" },
+        "answer": { "$ref": "#/$defs/localisedText" }
+      }
+    },
+    "photo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset", "position", "alt"],
+      "properties": {
+        "asset": { "enum": ["/assets/team/team-warm.png", "/assets/team/team-cool.png"] },
+        "position": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "alt": { "$ref": "#/$defs/localisedText" }
+      }
+    },
+    "teamMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "bio", "photo"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "role": { "$ref": "#/$defs/localisedText" },
+        "bio": { "$ref": "#/$defs/localisedText" },
+        "photo": { "$ref": "#/$defs/photo" }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "provider", "model", "seed", "generatedAt"],
+      "properties": {
+        "mode": { "enum": ["sample", "offline", "openai", "openrouter"] },
+        "provider": {
+          "oneOf": [
+            { "enum": ["openai", "openrouter"] },
+            { "type": "null" }
+          ]
+        },
+        "model": {
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 160 },
+            { "type": "null" }
+          ]
+        },
+        "seed": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
