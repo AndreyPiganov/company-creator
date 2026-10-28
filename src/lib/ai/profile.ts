@@ -17,7 +17,7 @@ function stableAsset(seed: string) {
 export function createProfileFromContent(
   content: GeneratedCompanyContent,
   input: CompanyGenerationInput,
-  provider: ProviderId,
+  provider: ProviderId | "offline",
   model: string,
 ): CompanyProfile {
   const seed = input.seed || crypto.randomUUID();
@@ -45,8 +45,8 @@ export function createProfileFromContent(
     disclaimer,
     generation: {
       mode: provider,
-      provider,
-      model,
+      provider: provider === "offline" ? null : provider,
+      model: provider === "offline" ? null : model,
       seed,
       generatedAt: new Date().toISOString(),
     },

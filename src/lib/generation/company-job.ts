@@ -5,11 +5,21 @@ import { maxRetries, operationBudget } from "@/lib/ai/config";
 import { buildCompanyPrompt } from "@/lib/ai/prompt";
 import { insertCompany, updateJob } from "@/lib/db/repository";
 import { safeErrorMessage } from "@/lib/http";
+import { generateOfflineCompany } from "./offline";
 
 export async function runCompanyGenerationJob(jobId: string, input: CompanyGenerationInput): Promise<void> {
   let spent = 0;
   try {
     await updateJob(jobId, { state: "preparing", attempt: 0, costUsd: 0, error: null });
+    if (input.provider === "offline") {
+      const profile = generateOfflineCompany(input);
+      await updateJob(jobId, { state: "validating", attempt: 1, costUsd: 0 });
+      assertValidCompany(profile);
+      await updateJob(jobId, { state: "saving" });
+      await insertCompany(profile);
+      await updateJob(jobId, { state: "complete", resultId: profile.id, costUsd: 0, error: null });
+      return;
+    }
     const provider = await createAiProvider(input);
     const prompt = buildCompanyPrompt(input);
     const estimate = provider.estimateMaximumCost(prompt);
