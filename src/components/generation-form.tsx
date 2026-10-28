@@ -13,16 +13,42 @@ type Job = {
   error: string | null;
 };
 
+type ProviderInfo = {
+  id: "offline" | "openai" | "openrouter";
+  label: string;
+  configured: boolean;
+  models: Array<{ id: string; label: string }>;
+  error?: string | null;
+};
+
 const control = "mt-1.5 w-full rounded-xl border border-[var(--line)] bg-white px-3.5 py-2.5 outline-none focus:border-[var(--accent)]";
 
 export function GenerationForm() {
   const router = useRouter();
   const [provider, setProvider] = useState("offline");
+  const [providers, setProviders] = useState<ProviderInfo[]>([
+    { id: "offline", label: "Локальный генератор", configured: true, models: [{ id: "offline", label: "Offline" }] },
+  ]);
+  const [model, setModel] = useState("");
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState("");
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (pollRef.current) clearTimeout(pollRef.current); }, []);
+  useEffect(() => {
+    fetch("/api/providers", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload) => setProviders(payload.providers ?? []))
+      .catch(() => undefined);
+    return () => { if (pollRef.current) clearTimeout(pollRef.current); };
+  }, []);
+
+  const selectedProvider = providers.find((item) => item.id === provider);
+
+  function chooseProvider(nextProvider: string) {
+    setProvider(nextProvider);
+    const info = providers.find((item) => item.id === nextProvider);
+    setModel(info?.models[0]?.id ?? "");
+  }
 
   async function poll(id: string) {
     const response = await fetch(`/api/jobs/${id}`, { cache: "no-store" });
@@ -57,7 +83,7 @@ export function GenerationForm() {
         serviceType: form.get("serviceType"),
         size: form.get("size"),
         provider,
-        model: provider === "offline" ? undefined : form.get("model"),
+        model: provider === "offline" ? undefined : model,
       }),
     });
     const payload = await response.json();
@@ -77,8 +103,8 @@ export function GenerationForm() {
         <label className="text-sm font-medium">Название бренда <span className="text-[var(--muted)]">(пусто = случайное)</span><input name="brandName" maxLength={80} className={control} placeholder="Например, Nordlicht Research" /></label>
         <label className="text-sm font-medium">Масштаб<select name="size" className={control} defaultValue="random"><option value="random">Случайный</option><option value="small">Небольшая</option><option value="medium">Средняя</option></select></label>
         <label className="text-sm font-medium">Тип сервиса<select name="serviceType" className={control} defaultValue="random"><option value="random">Случайный</option><option value="investment-due-diligence">Investment due diligence</option><option value="market-intelligence">Market intelligence</option><option value="portfolio-monitoring">Мониторинг портфеля</option><option value="document-data-analysis">Анализ документов</option></select></label>
-        <label className="text-sm font-medium">Провайдер<select name="provider" value={provider} onChange={(event) => setProvider(event.target.value)} className={control}><option value="offline">Локальный — без API</option><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select></label>
-        {provider !== "offline" && <label className="text-sm font-medium md:col-span-2">Модель<input name="model" className={control} defaultValue={provider === "openai" ? "gpt-6-luna" : ""} placeholder={provider === "openrouter" ? "Выберите доступную модель" : "gpt-6-luna"} /></label>}
+        <label className="text-sm font-medium">Провайдер<select name="provider" value={provider} onChange={(event) => chooseProvider(event.target.value)} className={control}>{providers.map((item) => <option key={item.id} value={item.id} disabled={!item.configured}>{item.label}{item.configured ? "" : " — ключ не настроен"}</option>)}</select></label>
+        {provider !== "offline" && <label className="text-sm font-medium md:col-span-2">Модель<select name="model" value={model} onChange={(event) => setModel(event.target.value)} className={control} required><option value="" disabled>{selectedProvider?.error || "Выберите модель"}</option>{selectedProvider?.models.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>}
       </div>
       {job && busy && (
         <div className="mt-6 flex items-center gap-3 rounded-xl bg-[var(--accent-soft)] p-4 text-sm text-[var(--accent)]" role="status">

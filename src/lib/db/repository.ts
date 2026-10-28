@@ -186,7 +186,8 @@ export async function createJob(kind: "company" | "site", input: unknown): Promi
 export async function getJob(id: string): Promise<GenerationJob | null> {
   const rows = await getDatabase().select().from(generationJobs).where(eq(generationJobs.id, id)).limit(1);
   if (!rows[0]) return null;
-  return { ...rows[0], state: rows[0].state as JobState, input: JSON.parse(rows[0].inputJson) };
+  const { inputJson, ...row } = rows[0];
+  return { ...row, state: row.state as JobState, input: JSON.parse(inputJson) };
 }
 
 export async function updateJob(
