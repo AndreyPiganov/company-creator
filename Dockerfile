@@ -6,6 +6,10 @@ RUN apt-get update \
 COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+FROM deps AS test
+WORKDIR /app
+COPY . .
+
 FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1

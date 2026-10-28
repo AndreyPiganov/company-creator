@@ -2,6 +2,7 @@
   "name": "company-creator",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -20,7 +21,7 @@
     "archiver": "^7.0.1",
     "better-sqlite3": "^12.4.1",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "^0.45.4",
     "lucide-react": "^0.552.0",
     "next": "^16.0.1",
     "openai": "^6.8.1",

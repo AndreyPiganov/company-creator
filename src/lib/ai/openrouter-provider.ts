@@ -32,7 +32,7 @@ export async function getOpenRouterModels(): Promise<ModelDescriptor[]> {
   const models = parsed.data
     .filter((item) => {
       const parameters = item.supported_parameters ?? [];
-      return parameters.length === 0 || parameters.includes("structured_outputs") || parameters.includes("response_format");
+      return parameters.includes("structured_outputs") || parameters.includes("response_format");
     })
     .map((item) => ({
       id: item.id,

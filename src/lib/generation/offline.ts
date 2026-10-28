@@ -154,6 +154,11 @@ export function generateOfflineCompany(rawInput: CompanyGenerationInput): Compan
     t("Создаёт надёжные конвейеры обработки документов и интерфейсы, в которых автоматические выводы можно проверить вручную.", "Entwickelt robuste Dokumentenpipelines und Oberflächen, in denen automatisierte Ergebnisse manuell überprüfbar bleiben."),
     t(`Проводит ручную проверку сложных случаев и формулирует вопросы для инвестиционных команд в проектах ${sector.ru}.`, `Prüft komplexe Fälle manuell und formuliert Fragen für Investmentteams in Projekten aus ${sector.de}.`),
   ];
+  const specialisation = copy.specialisation(sector);
+  const brandedSpecialisation = t(
+    `${specialisation.ru} Методика ${brandName} выделяет неопределённость отдельно от подтверждённых фактов.`,
+    `${specialisation.de} Die Methodik von ${brandName} trennt Unsicherheit konsequent von bestätigten Fakten.`,
+  );
 
   const content: GeneratedCompanyContent = {
     brandName,
@@ -168,7 +173,7 @@ export function generateOfflineCompany(rawInput: CompanyGenerationInput): Compan
     serviceType,
     size,
     history: originStories[Math.floor(random() * originStories.length)]!,
-    specialisation: copy.specialisation(sector),
+    specialisation: brandedSpecialisation,
     audience: copy.audience,
     customerProblem: copy.problem,
     product: {

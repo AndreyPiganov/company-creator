@@ -22,9 +22,9 @@ The supported environment is Docker because the host may not have Node.js instal
 
 ```bash
 docker compose up --build
-docker compose run --rm app npm test
-docker compose run --rm app npm run typecheck
-docker compose run --rm app npm run lint
+docker compose run --rm test npm test
+docker compose run --rm test npm run typecheck
+docker compose run --rm test npm run lint
 ```
 
 For a host with Node.js 24+:

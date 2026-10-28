@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return apiError("Некорректные параметры генерации", 422, parsed.error.issues);
   const job = await createJob("company", parsed.data);
   setTimeout(() => void runCompanyGenerationJob(job.id, parsed.data), 0);
-  const { input: _input, ...publicJob } = job;
+  const { input, ...publicJob } = job;
+  void input;
   return NextResponse.json({ job: publicJob }, { status: 202 });
 }

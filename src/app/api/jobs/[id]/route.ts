@@ -8,6 +8,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
   const job = await getJob(id);
   if (!job) return apiError("Задача не найдена", 404);
-  const { input: _input, ...publicJob } = job;
+  const { input, ...publicJob } = job;
+  void input;
   return NextResponse.json({ job: publicJob });
 }

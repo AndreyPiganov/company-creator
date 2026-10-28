@@ -20,6 +20,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!parsed.success) return apiError("Некорректные параметры сайта", 422, parsed.error.issues);
   const job = await createJob("site", { companyId: id, ...parsed.data });
   setTimeout(() => void runSiteGenerationJob(job.id, id, parsed.data), 0);
-  const { input: _input, ...publicJob } = job;
+  const { input, ...publicJob } = job;
+  void input;
   return NextResponse.json({ job: publicJob }, { status: 202 });
 }
