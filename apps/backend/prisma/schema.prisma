@@ -1,0 +1,81 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CompanyStatus {
+  draft
+  approved
+}
+
+enum SiteLanguage {
+  ru
+  de
+}
+
+enum SiteTheme {
+  forest
+  midnight
+  sand
+  berry
+}
+
+enum JobKind {
+  company
+  site
+}
+
+model Company {
+  id          String        @id @db.Uuid
+  brandName   String        @map("brand_name")
+  status      CompanyStatus
+  revision    Int
+  profileJson Json          @map("profile_json")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  approvedAt  DateTime?     @map("approved_at")
+  sites       SiteVersion[]
+
+  @@index([status], map: "companies_status_idx")
+  @@index([updatedAt], map: "companies_updated_idx")
+  @@map("companies")
+}
+
+model SiteVersion {
+  id           String       @id @db.Uuid
+  companyId    String       @map("company_id") @db.Uuid
+  version      Int
+  language     SiteLanguage
+  theme        SiteTheme
+  snapshotJson Json         @map("snapshot_json")
+  artifactPath String       @map("artifact_path")
+  checksum     String
+  createdAt    DateTime     @default(now()) @map("created_at")
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, version], map: "site_company_version_unique")
+  @@index([companyId], map: "site_company_idx")
+  @@map("site_versions")
+}
+
+model GenerationJob {
+  id        String   @id @db.Uuid
+  kind      JobKind
+  state     String
+  attempt   Int      @default(0)
+  costUsd   Float    @default(0) @map("cost_usd")
+  inputJson Json     @map("input_json")
+  resultId  String?  @map("result_id") @db.Uuid
+  error     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([state], map: "jobs_state_idx")
+  @@index([updatedAt], map: "jobs_updated_idx")
+  @@map("generation_jobs")
+}

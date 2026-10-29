@@ -1,8 +1,9 @@
 .git
-.next
-node_modules
-data
-coverage
+**/.next
+**/node_modules
+**/dist
+**/data
+**/coverage
 .env*
 !.env.example
 ТЗ.txt

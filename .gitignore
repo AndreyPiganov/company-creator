@@ -4,6 +4,7 @@
 # Dependencies and framework output
 node_modules/
 .next/
+dist/
 out/
 coverage/
 

@@ -1,34 +1,91 @@
 services:
-  app:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: company_creator
+      POSTGRES_USER: company_creator
+      POSTGRES_PASSWORD: company_creator
+    volumes:
+      - company_creator_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U company_creator -d company_creator"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
     build:
       context: .
+      dockerfile: apps/backend/Dockerfile
     env_file:
       - path: .env
         required: false
     environment:
-      DATABASE_PATH: /app/data/company-creator.sqlite
+      DATABASE_URL: postgresql://company_creator:company_creator@postgres:5432/company_creator
+      PORT: 4000
+      FRONTEND_ORIGIN: http://localhost:3000
+      APP_URL: http://localhost:4000
       ARTIFACTS_PATH: /app/data/sites
-      APP_URL: http://localhost:3000
+      TEAM_ASSETS_PATH: /workspace/apps/backend/assets/team
+    ports:
+      - "4000:4000"
+    volumes:
+      - company_creator_sites:/app/data/sites
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    environment:
+      BACKEND_INTERNAL_URL: http://backend:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
       - "3000:3000"
-    volumes:
-      - company_creator_data:/app/data
-    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
 
-  test:
+  backend-test:
     build:
       context: .
+      dockerfile: apps/backend/Dockerfile
       target: test
     environment:
-      DATABASE_PATH: /tmp/company-creator-test.sqlite
+      DATABASE_URL: postgresql://company_creator:company_creator@postgres:5432/company_creator
       ARTIFACTS_PATH: /tmp/company-creator-sites
+      TEAM_ASSETS_PATH: /workspace/apps/backend/assets/team
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["test"]
+
+  frontend-test:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      target: test
     profiles: ["test"]
 
 volumes:
-  company_creator_data:
+  company_creator_postgres:
+  company_creator_sites:
