@@ -17,8 +17,9 @@ export class GenerationService {
   }
 
   async enqueue(input: CompanyGenerationInput) {
-    const job = await this.repository.createJob("company", input);
-    setImmediate(() => void this.run(job.id, input));
+    const seededInput = { ...input, seed: input.seed || crypto.randomUUID() };
+    const job = await this.repository.createJob("company", seededInput);
+    setImmediate(() => void this.run(job.id, seededInput));
     return job;
   }
 

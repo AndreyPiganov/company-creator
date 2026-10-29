@@ -1,22 +1,31 @@
 import { Controller, Get } from "@nestjs/common";
-import { OPENAI_MODELS, operationBudget } from "./lib/ai/config";
+import { MAX_OUTPUT_TOKENS, OPENAI_MODELS, operationBudget } from "./lib/ai/config";
+import type { ModelDescriptor } from "./lib/ai/types";
 import { getOpenRouterModels } from "./lib/ai/openrouter-provider";
 
 @Controller()
 export class ProvidersController {
   @Get("api/providers")
   async providers() {
-    let openRouterModels: Array<{ id: string; label: string }> = [];
+    const budget = operationBudget();
+    const describe = (model: ModelDescriptor) => ({
+      id: model.id, label: model.label,
+      inputUsdPerMillion: model.inputUsdPerToken * 1_000_000,
+      outputUsdPerMillion: model.outputUsdPerToken * 1_000_000,
+      outputReserveUsd: MAX_OUTPUT_TOKENS * model.outputUsdPerToken,
+      exceedsBudget: MAX_OUTPUT_TOKENS * model.outputUsdPerToken > budget,
+    });
+    let openRouterModels: ReturnType<typeof describe>[] = [];
     let openRouterError: string | null = null;
     if (process.env.OPENROUTER_API_KEY) {
       try {
-        openRouterModels = (await getOpenRouterModels()).map(({ id, label }) => ({ id, label }));
+        openRouterModels = (await getOpenRouterModels()).map(describe);
       } catch {
         openRouterError = "Не удалось загрузить каталог моделей";
       }
     }
     return {
-      budgetUsd: operationBudget(),
+      budgetUsd: budget,
       providers: [
         {
           id: "offline",
@@ -28,7 +37,7 @@ export class ProvidersController {
           id: "openai",
           label: "OpenAI",
           configured: Boolean(process.env.OPENAI_API_KEY),
-          models: OPENAI_MODELS.map(({ id, label }) => ({ id, label })),
+          models: OPENAI_MODELS.map(describe),
         },
         {
           id: "openrouter",

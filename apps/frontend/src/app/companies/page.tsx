@@ -13,7 +13,7 @@ export default async function CompaniesPage() {
     <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div><p className="text-sm font-semibold uppercase tracking-[.14em] text-[var(--accent)]">Библиотека</p><h1 className="mt-2 text-4xl font-semibold tracking-[-.045em] sm:text-5xl">Компании и сайты</h1><p className="mt-3 text-[var(--muted)]">Карточка — источник фактов. Сайт — неизменяемый снимок утверждённой ревизии.</p></div>
-        <Link href="/companies/new" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-4 py-3 font-semibold text-white"><Plus size={18} /> Новая компания</Link>
+        <Link href="/companies/new" className="primary-button"><Plus size={18} /> Новая компания</Link>
       </div>
       <div className="mt-10 grid gap-5 lg:grid-cols-2">
         {companies.map((company) => (

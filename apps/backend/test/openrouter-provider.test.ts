@@ -57,6 +57,8 @@ describe("OpenRouter provider", () => {
           pricing: { prompt: "unknown", completion: "unknown" },
           supported_parameters: ["response_format"],
         },
+        { id: "vendor/json-only", pricing: { prompt: "0", completion: "0" }, supported_parameters: ["response_format"] },
+        { id: "vendor/negative", pricing: { prompt: "-1", completion: "0.001" }, supported_parameters: ["structured_outputs"] },
       ],
     }), { status: 200, headers: { "content-type": "application/json" } })));
 
@@ -68,6 +70,15 @@ describe("OpenRouter provider", () => {
         outputUsdPerToken: 0.000002,
       },
     ]);
+  });
+
+  it("does not truncate a large catalogue at 200 models", async () => {
+    vi.resetModules();
+    const { getOpenRouterModels: freshCatalogue } = await import("@/lib/ai/openrouter-provider");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: Array.from({ length: 250 }, (_, i) => ({
+      id: `vendor/model-${i}`, pricing: { prompt: "0.000001", completion: "0.000002" }, supported_parameters: ["structured_outputs"],
+    })) }))));
+    expect(await freshCatalogue()).toHaveLength(250);
   });
 
   it("parses a structured result and uses reported cost", async () => {

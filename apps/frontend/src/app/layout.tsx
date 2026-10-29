@@ -16,24 +16,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ru">
       <body>
         <header className="border-b border-[var(--line)] bg-[rgba(255,253,248,.86)] backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 lg:px-8">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
             <Link href="/" className="flex items-center gap-3 font-semibold tracking-[-0.02em]">
               <span className="grid size-10 place-items-center rounded-xl bg-[var(--ink)] text-white">
                 <Building2 size={20} aria-hidden="true" />
               </span>
               <span>
                 Company Creator
-                <span className="block text-xs font-normal text-[var(--muted)]">Fictional B2B studio</span>
+                <span className="block text-xs font-normal text-[var(--muted)]">Студия компаний и сайтов</span>
               </span>
             </Link>
             <nav className="flex items-center gap-1 text-sm" aria-label="Основная навигация">
-              <Link href="/companies" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white">
+              <Link href="/companies" aria-label="Библиотека компаний" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white">
                 <LibraryBig size={16} aria-hidden="true" />
                 <span className="hidden sm:inline">Библиотека</span>
               </Link>
-              <Link href="/companies/new" className="flex items-center gap-2 rounded-lg bg-[var(--ink)] px-4 py-2 text-white hover:opacity-90">
+              <Link href="/companies/new" className="primary-button">
                 <Sparkles size={16} aria-hidden="true" />
-                <span>Создать</span>
+                <span>Создать компанию</span>
               </Link>
             </nav>
           </div>

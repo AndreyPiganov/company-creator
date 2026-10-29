@@ -45,7 +45,7 @@ export async function getOpenRouterModels(): Promise<ModelDescriptor[]> {
   const models = parsed.data
     .filter((item) => {
       const parameters = item.supported_parameters ?? [];
-      return parameters.includes("structured_outputs") || parameters.includes("response_format");
+      return parameters.includes("structured_outputs");
     })
     .map((item) => ({
       id: item.id,
@@ -53,9 +53,8 @@ export async function getOpenRouterModels(): Promise<ModelDescriptor[]> {
       inputUsdPerToken: Number(item.pricing.prompt),
       outputUsdPerToken: Number(item.pricing.completion),
     }))
-    .filter((item) => Number.isFinite(item.inputUsdPerToken) && Number.isFinite(item.outputUsdPerToken))
-    .sort((a, b) => a.label.localeCompare(b.label))
-    .slice(0, 200);
+    .filter((item) => Number.isFinite(item.inputUsdPerToken) && item.inputUsdPerToken >= 0 && Number.isFinite(item.outputUsdPerToken) && item.outputUsdPerToken >= 0)
+    .sort((a, b) => a.label.localeCompare(b.label));
   cachedModels = { expiresAt: Date.now() + 15 * 60_000, models };
   return models;
 }

@@ -24,4 +24,23 @@ describe("static site renderer", () => {
     expect(html).not.toMatch(/\{\{|TODO|LOREM IPSUM/i);
     expect(`${html}\n${files["styles.css"]}`).not.toMatch(/https?:\/\//i);
   });
+
+  it("escapes metadata once and preserves facts across every theme and language", () => {
+    const profile = structuredClone(sampleCompanies[0]);
+    profile.product.name = { ru: "Обзор & анализ", de: "Research & Analyse" };
+    profile.product.summary = { ru: 'Материалы & "источники"', de: 'Daten & "Quellen"' };
+    for (const language of ["ru", "de"] as const) {
+      for (const theme of ["forest", "midnight", "sand", "berry"] as const) {
+        const files = renderSiteFiles(profile, language, theme);
+        expect(files["product.html"]).toContain(language === "ru" ? "Обзор &amp; анализ" : "Research &amp; Analyse");
+        expect(files["product.html"]).not.toContain("&amp;amp;");
+        expect(files["index.html"]).toContain('class="research-board"');
+        expect(files["index.html"]).toContain(profile.product.inputs[language]);
+        expect(files["company.html"]).toContain(profile.legalName);
+        expect(files["company.html"]?.match(/class="portrait p/g)).toHaveLength(profile.team.length);
+        expect(files["styles.css"]).toContain("prefers-reduced-motion");
+        expect(files["styles.css"]).toContain("@media(max-width:680px)");
+      }
+    }
+  });
 });
