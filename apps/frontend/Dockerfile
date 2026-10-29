@@ -9,7 +9,7 @@ FROM deps AS test
 COPY apps/frontend ./apps/frontend
 
 FROM deps AS builder
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_API_URL=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY apps/frontend ./apps/frontend

@@ -25,11 +25,11 @@ services:
       DATABASE_URL: postgresql://company_creator:company_creator@postgres:5432/company_creator
       PORT: 4000
       FRONTEND_ORIGIN: http://localhost:3000
-      APP_URL: http://localhost:4000
+      APP_URL: http://localhost:3000
       ARTIFACTS_PATH: /app/data/sites
       TEAM_ASSETS_PATH: /workspace/apps/backend/assets/team
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"
     volumes:
       - company_creator_sites:/app/data/sites
     depends_on:
@@ -48,12 +48,12 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_API_URL: ""
     environment:
       BACKEND_INTERNAL_URL: http://backend:4000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-    ports:
-      - "3000:3000"
+      NEXT_PUBLIC_API_URL: ""
+    expose:
+      - "3000"
     depends_on:
       backend:
         condition: service_healthy
@@ -63,6 +63,25 @@ services:
       timeout: 3s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      dockerfile: infra/nginx/Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/nginx-health | grep -qx ok"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
 
   backend-test:

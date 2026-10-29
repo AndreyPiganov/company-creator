@@ -4,9 +4,10 @@
 
 ```mermaid
 flowchart LR
-    Browser[Браузер] --> Frontend[Next.js frontend :3000]
-    Frontend -->|REST / polling| Backend[NestJS backend :4000]
-    Browser -->|REST / preview / ZIP| Backend
+    Browser[Браузер] --> Nginx[Nginx :3000]
+    Nginx -->|страницы и assets| Frontend[Next.js frontend :3000 internal]
+    Nginx -->|/api и /sites| Backend[NestJS backend :4000 internal]
+    Frontend -->|SSR REST| Backend
     Backend --> Domain[Zod + доменные валидаторы]
     Backend --> Jobs[GenerationService / SitesService]
     Jobs --> Providers[AiProvider]
@@ -19,12 +20,13 @@ flowchart LR
     Renderer --> Artifacts[(Volume HTML/CSS/assets)]
 ```
 
-Next.js и NestJS являются отдельными приложениями и контейнерами. Frontend отвечает только за представление, формы и polling. Весь доступ к данным, ключам, внешним провайдерам и файловым артефактам находится в backend.
+Nginx, Next.js и NestJS являются отдельными контейнерами. Только Nginx публикует порт на host. Он проксирует `/api/*` и `/sites/*` в backend, а остальные пути — во frontend. Браузер работает с одним origin; Next.js использует внутренний адрес backend для SSR. Весь доступ к данным, ключам, внешним провайдерам и файловым артефактам находится в backend.
 
 ## Границы компонентов
 
 | Компонент | Ответственность |
 | --- | --- |
+| `infra/nginx` | закреплённый образ Nginx, единый origin, forwarded headers и proxy healthcheck |
 | `apps/frontend/src/app` | страницы, серверная загрузка данных и маршрутизация |
 | `apps/frontend/src/components` | формы, polling задач и действия пользователя |
 | `apps/frontend/src/lib/api.ts` | единая настройка внутреннего и браузерного URL backend |
@@ -70,7 +72,7 @@ Preview и ZIP читают этот же `artifact_path`; актуальная 
 
 ## Секреты и сеть
 
-Ключи OpenAI/OpenRouter передаются только backend-контейнеру. Frontend получает лишь безопасный каталог доступности провайдеров. Ошибки очищаются перед записью и выдачей. Статические сайты не содержат внешних зависимостей, а preview разрешает только фиксированный список файлов.
+Ключи OpenAI/OpenRouter передаются только backend-контейнеру. Frontend и Nginx их не получают. Backend и frontend не публикуют host-порты, а Nginx передаёт стандартные `X-Forwarded-*` заголовки. Frontend получает лишь безопасный каталог доступности провайдеров. Ошибки очищаются перед записью и выдачей. Статические сайты не содержат внешних зависимостей, а preview разрешает только фиксированный список файлов.
 
 ## Возможное развитие
 

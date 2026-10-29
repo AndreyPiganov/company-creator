@@ -27,6 +27,7 @@ docker compose run --rm backend-test npm run typecheck --workspace @company-crea
 docker compose run --rm backend-test npm run lint --workspace @company-creator/backend
 docker compose run --rm frontend-test npm run typecheck --workspace @company-creator/frontend
 docker compose run --rm frontend-test npm run lint --workspace @company-creator/frontend
+docker compose run --rm --no-deps nginx nginx -t
 ```
 
 For a host with Node.js 24+:

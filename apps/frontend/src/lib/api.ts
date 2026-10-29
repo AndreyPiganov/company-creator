@@ -22,8 +22,9 @@ function trimSlash(value: string): string {
 }
 
 export function browserApiUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-  return `${trimSlash(base)}${path.startsWith("/") ? path : `/${path}`}`;
+  const base = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const normalisedPath = path.startsWith("/") ? path : `/${path}`;
+  return base ? `${trimSlash(base)}${normalisedPath}` : normalisedPath;
 }
 
 export function serverApiUrl(path: string): string {

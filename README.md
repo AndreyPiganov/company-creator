@@ -1,6 +1,6 @@
 # Company Creator
 
-Локальная панель с раздельными приложениями: интерфейс на Next.js и самостоятельный REST API на NestJS. Backend хранит данные в PostgreSQL через Prisma ORM, выполняет AI- и offline-генерацию, собирает неизменяемые статические сайты и отдаёт JSON/ZIP.
+Локальная панель с раздельными приложениями: интерфейс на Next.js, самостоятельный REST API на NestJS и Nginx как единая точка входа. Backend хранит данные в PostgreSQL через Prisma ORM, выполняет AI- и offline-генерацию, собирает неизменяемые статические сайты и отдаёт JSON/ZIP.
 
 > Все компании, сотрудники, адреса и продукты являются вымышленными проектными данными.
 
@@ -18,11 +18,12 @@
 
 | Компонент | Адрес | Назначение |
 | --- | --- | --- |
-| `apps/frontend` | <http://localhost:3000> | Next.js App Router, React, русскоязычная панель |
-| `apps/backend` | <http://localhost:4000> | NestJS REST API, задачи, AI, рендер и экспорт |
+| `infra/nginx` | <http://localhost:3000> | Nginx 1.30, единый публичный origin и reverse proxy |
+| `apps/frontend` | Docker-сеть, порт `3000` | Next.js App Router, React, русскоязычная панель |
+| `apps/backend` | Docker-сеть, порт `4000` | NestJS REST API, задачи, AI, рендер и экспорт |
 | `postgres` | только Docker-сеть | PostgreSQL 17, Prisma ORM и миграции |
 
-Frontend не содержит API-ключей и не обращается к базе. Серверный рендер Next.js использует `BACKEND_INTERNAL_URL`, браузер — `NEXT_PUBLIC_API_URL`. Подробности находятся в [описании архитектуры](docs/architecture.md), JSON Schema профиля — в [company-profile.schema.json](docs/company-profile.schema.json).
+Nginx направляет `/api/*` и `/sites/*` в NestJS, остальные запросы — в Next.js. Поэтому браузер использует относительные same-origin URL, CORS для штатного Docker-сценария не требуется. Frontend не содержит API-ключей и не обращается к базе; его серверный рендер использует внутренний `BACKEND_INTERNAL_URL`. Подробности находятся в [описании архитектуры](docs/architecture.md), JSON Schema профиля — в [company-profile.schema.json](docs/company-profile.schema.json).
 
 ## Запуск через Docker
 
@@ -36,8 +37,11 @@ docker compose up --build
 После запуска:
 
 - панель: <http://localhost:3000>;
-- backend healthcheck: <http://localhost:4000/api/health>;
-- каталог провайдеров: <http://localhost:4000/api/providers>.
+- backend healthcheck через Nginx: <http://localhost:3000/api/health>;
+- каталог провайдеров через Nginx: <http://localhost:3000/api/providers>;
+- healthcheck самого Nginx: <http://localhost:3000/nginx-health>.
+
+Порты frontend и backend наружу не публикуются. Для прямой отладки при host-разработке они по-прежнему запускаются отдельно командами `npm run dev:frontend` и `npm run dev:backend`.
 
 Ключи не обязательны: примеры и offline-генератор работают без сети. PostgreSQL и сайты хранятся в volumes `company_creator_postgres` и `company_creator_sites`. Обычный `docker compose down` их сохраняет; `docker compose down -v` удаляет без возможности восстановления.
 
@@ -90,6 +94,7 @@ docker compose run --rm backend-test npm run typecheck --workspace @company-crea
 docker compose run --rm backend-test npm run lint --workspace @company-creator/backend
 docker compose run --rm frontend-test npm run typecheck --workspace @company-creator/frontend
 docker compose run --rm frontend-test npm run lint --workspace @company-creator/frontend
+docker compose run --rm --no-deps nginx nginx -t
 docker compose up --build -d
 docker compose ps
 ```
@@ -106,7 +111,7 @@ npm run dev:frontend
 
 ## HTTP API
 
-Все API-маршруты обслуживает NestJS на порту `4000`.
+Все API-маршруты обслуживает NestJS на внутреннем порту `4000`; для браузера они доступны через Nginx и тот же адрес `http://localhost:3000`.
 
 | Метод и путь | Назначение |
 | --- | --- |
@@ -151,5 +156,6 @@ apps/backend/src/lib/ai/        AI-адаптеры, prompt и бюджет
 apps/backend/src/lib/site/      статический рендер и артефакты
 apps/backend/prisma/            схема и PostgreSQL-миграции
 apps/backend/test/              unit, adapter, integration и render-тесты
+infra/nginx/                    образ и маршрутизация reverse proxy
 docs/                           архитектура и JSON Schema
 ```
