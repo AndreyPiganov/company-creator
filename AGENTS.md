@@ -22,16 +22,19 @@ The supported environment is Docker because the host may not have Node.js instal
 
 ```bash
 docker compose up --build
-docker compose run --rm test npm test
-docker compose run --rm test npm run typecheck
-docker compose run --rm test npm run lint
+docker compose run --rm backend-test npm test --workspace @company-creator/backend
+docker compose run --rm backend-test npm run typecheck --workspace @company-creator/backend
+docker compose run --rm backend-test npm run lint --workspace @company-creator/backend
+docker compose run --rm frontend-test npm run typecheck --workspace @company-creator/frontend
+docker compose run --rm frontend-test npm run lint --workspace @company-creator/frontend
 ```
 
 For a host with Node.js 24+:
 
 ```bash
 npm ci
-npm run dev
+npm run dev:backend
+npm run dev:frontend
 ```
 
 ## Change discipline
