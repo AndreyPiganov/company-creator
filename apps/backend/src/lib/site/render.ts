@@ -2,6 +2,7 @@ import type { CompanyProfile, SiteLanguage, SiteTheme } from "../domain/company"
 import { SERVICE_LABELS } from "../domain/catalogues";
 import { THEMES } from "./themes";
 import { SITE_STYLES } from "./styles";
+import { PHOTO_ASSET_PATTERN, sitePhotoFile } from "../media/photos";
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
@@ -93,12 +94,20 @@ function product(profile: CompanyProfile, language: SiteLanguage, theme: SiteThe
   return shell(profile, language, theme, "product", body);
 }
 
+function portrait(member: CompanyProfile["team"][number], index: number, language: SiteLanguage) {
+  const file = sitePhotoFile(member.photo, index);
+  const alt = l(member.photo.alt, language);
+  return PHOTO_ASSET_PATTERN.test(member.photo.asset)
+    ? `<img class="portrait portrait-upload" src="${file}" alt="${alt}" width="960" height="1280" loading="lazy">`
+    : `<div class="portrait p${member.photo.position}" style="background-image:url('${file}')" role="img" aria-label="${alt}"></div>`;
+}
+
 function company(profile: CompanyProfile, language: SiteLanguage, theme: SiteTheme) {
   const de = language === "de";
   const body = `
   <section class="page-hero wrap"><p class="eyebrow">${de ? "Unternehmen" : "Компания"} · ${escapeHtml(profile.contact.city)}</p><h1>${escapeHtml(profile.brandName)}</h1><p class="lead">${l(profile.history, language)}</p></section>
   <section class="statement"><div class="wrap split"><p class="kicker">${de ? "Fokus" : "Фокус"}</p><h2>${l(profile.specialisation, language)}</h2></div></section>
-  <section class="wrap section"><div class="section-head"><p class="kicker">${de ? "Team" : "Команда"}</p><h2>${de ? "Menschen hinter dem Unternehmen" : "Люди, которые стоят за компанией"}</h2></div><div class="team">${profile.team.map((member) => `<article><div class="portrait p${member.photo.position}" role="img" aria-label="${l(member.photo.alt, language)}"></div><h3>${escapeHtml(member.name)}</h3><p class="role">${l(member.role, language)}</p><p>${l(member.bio, language)}</p></article>`).join("")}</div></section>
+  <section class="wrap section"><div class="section-head"><p class="kicker">${de ? "Team" : "Команда"}</p><h2>${de ? "Menschen hinter dem Unternehmen" : "Люди, которые стоят за компанией"}</h2></div><div class="team">${profile.team.map((member, index) => `<article>${portrait(member, index, language)}<h3>${escapeHtml(member.name)}</h3><p class="role">${l(member.role, language)}</p><p>${l(member.bio, language)}</p></article>`).join("")}</div></section>
   <section class="contact"><div class="wrap contact-grid"><div><p class="kicker">${de ? "Kontakt" : "Контакты"}</p><h2>${escapeHtml(profile.legalName)}</h2><p>${escapeHtml(profile.contact.address)}</p></div><div><a href="mailto:${escapeHtml(profile.contact.email)}">${escapeHtml(profile.contact.email)}</a><a href="tel:${escapeHtml(profile.contact.phone.replace(/\s/g, ""))}">${escapeHtml(profile.contact.phone)}</a></div></div></section>`;
   return shell(profile, language, theme, "company", body);
 }

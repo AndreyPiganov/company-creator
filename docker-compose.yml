@@ -28,10 +28,14 @@ services:
       APP_URL: http://localhost:3000
       ARTIFACTS_PATH: /app/data/sites
       TEAM_ASSETS_PATH: /workspace/apps/backend/assets/team
+      SETTINGS_PATH: /app/data/settings
+      PHOTOS_PATH: /app/data/photos
     expose:
       - "4000"
     volumes:
       - company_creator_sites:/app/data/sites
+      - company_creator_settings:/app/data/settings
+      - company_creator_photos:/app/data/photos
     depends_on:
       postgres:
         condition: service_healthy
@@ -108,3 +112,5 @@ services:
 volumes:
   company_creator_postgres:
   company_creator_sites:
+  company_creator_settings:
+  company_creator_photos:

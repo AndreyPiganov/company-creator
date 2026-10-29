@@ -114,7 +114,10 @@
       "additionalProperties": false,
       "required": ["asset", "position", "alt"],
       "properties": {
-        "asset": { "enum": ["/assets/team/team-warm.png", "/assets/team/team-cool.png"] },
+        "asset": { "anyOf": [
+          { "enum": ["/assets/team/team-warm.png", "/assets/team/team-cool.png"] },
+          { "type": "string", "pattern": "^/api/photos/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.jpg$" }
+        ] },
         "position": { "type": "integer", "minimum": 0, "maximum": 4 },
         "alt": { "$ref": "#/$defs/localisedText" }
       }

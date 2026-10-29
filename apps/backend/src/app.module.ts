@@ -10,6 +10,8 @@ import { ProvidersController } from "./providers.controller";
 import { SeedService } from "./seed/seed.service";
 import { SitesController } from "./sites.controller";
 import { SitesService } from "./sites/sites.service";
+import { SettingsController } from "./settings.controller";
+import { PhotosController } from "./photos.controller";
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { SitesService } from "./sites/sites.service";
     GenerationController,
     CompaniesController,
     SitesController,
+    SettingsController,
+    PhotosController,
   ],
   providers: [SeedService, GenerationService, SitesService],
 })

@@ -10,7 +10,7 @@ export const companyStatusSchema = z.enum(["draft", "approved"]);
 export const generationModeSchema = z.enum(["sample", "offline", "openai", "openrouter"]);
 
 const photoSchema = z.object({
-  asset: z.enum(["/assets/team/team-warm.png", "/assets/team/team-cool.png"]),
+  asset: z.union([z.enum(["/assets/team/team-warm.png", "/assets/team/team-cool.png"]), z.string().regex(/^\/api\/photos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.jpg$/)]),
   position: z.number().int().min(0).max(4),
   alt: localisedTextSchema,
 });

@@ -24,7 +24,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 nodejs \
   && useradd --system --uid 1001 --gid nodejs backend \
-  && mkdir -p /app/data/sites \
+  && mkdir -p /app/data/sites /app/data/settings /app/data/photos \
   && chown -R backend:nodejs /app/data
 COPY --from=builder --chown=backend:nodejs /workspace/package.json /workspace/package-lock.json ./
 COPY --from=builder --chown=backend:nodejs /workspace/node_modules ./node_modules

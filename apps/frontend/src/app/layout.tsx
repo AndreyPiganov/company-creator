@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, LibraryBig, Sparkles } from "lucide-react";
+import { Building2, LibraryBig, Sparkles, Settings } from "lucide-react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </span>
             </Link>
             <nav className="flex items-center gap-1 text-sm" aria-label="Основная навигация">
+              <Link href="/settings" aria-label="Настройки провайдеров" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white"><Settings size={16} aria-hidden="true" /><span className="hidden sm:inline">Настройки</span></Link>
               <Link href="/companies" aria-label="Библиотека компаний" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white">
                 <LibraryBig size={16} aria-hidden="true" />
                 <span className="hidden sm:inline">Библиотека</span>

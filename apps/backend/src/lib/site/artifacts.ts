@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CompanyProfile, SiteLanguage, SiteTheme } from "../domain/company";
 import { renderSiteFiles } from "./render";
+import { readProfilePhoto, sitePhotoFile } from "../media/photos";
 
 export function artifactsRoot(): string {
   return path.resolve(/*turbopackIgnore: true*/ process.env.ARTIFACTS_PATH || path.join(process.cwd(), "data", "sites"));
@@ -41,11 +42,12 @@ export async function createSiteArtifact(
       await writeFile(path.join(temporaryPath, name), content, "utf8");
       hash.update(name).update("\0").update(content);
     }
-    const teamAssetsPath = path.resolve(process.env.TEAM_ASSETS_PATH || path.join(process.cwd(), "assets", "team"));
-    const sourcePhoto = path.join(teamAssetsPath, path.basename(profile.team[0].photo.asset));
-    const targetPhoto = path.join(temporaryPath, "assets", "team.png");
-    await copyFile(sourcePhoto, targetPhoto);
-    hash.update("assets/team.png").update("\0").update(await readFile(targetPhoto));
+    for (const [index, member] of profile.team.entries()) {
+      const file = sitePhotoFile(member.photo, index);
+      const bytes = await readProfilePhoto(member.photo.asset);
+      await writeFile(path.join(temporaryPath, file), bytes);
+      hash.update(file).update("\0").update(bytes);
+    }
     await rename(temporaryPath, finalPath);
     return { artifactPath: finalPath, checksum: hash.digest("hex") };
   } catch (error) {
@@ -61,4 +63,5 @@ export const PREVIEW_FILES: Record<string, string> = {
   "styles.css": "text/css; charset=utf-8",
   "favicon.svg": "image/svg+xml",
   "assets/team.png": "image/png",
+  ...Array.from({ length: 8 }, (_, i) => i).reduce<Record<string, string>>((files, index) => ({ ...files, [`assets/person-${index}.jpg`]: "image/jpeg", [`assets/person-${index}.png`]: "image/png" }), {}),
 };

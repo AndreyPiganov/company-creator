@@ -4,6 +4,7 @@ import { generatedCompanyContentSchema } from "./content-schema";
 import { MAX_OUTPUT_TOKENS, requestTimeout } from "./config";
 import { createProfileFromContent } from "./profile";
 import type { AiProvider, ModelDescriptor, ProviderResult } from "./types";
+import { getProviderKey } from "../settings/provider-keys";
 
 const openRouterModelsResponseSchema = z.object({
   data: z.array(
@@ -31,10 +32,13 @@ const openRouterCompletionResponseSchema = z.object({
 
 let cachedModels: { expiresAt: number; models: ModelDescriptor[] } | undefined;
 
+export function resetOpenRouterModels() { cachedModels = undefined; }
+
 export async function getOpenRouterModels(): Promise<ModelDescriptor[]> {
   if (cachedModels && cachedModels.expiresAt > Date.now()) return cachedModels.models;
   const headers: Record<string, string> = {};
-  if (process.env.OPENROUTER_API_KEY) headers.authorization = `Bearer ${process.env.OPENROUTER_API_KEY}`;
+  const key = await getProviderKey("openrouter");
+  if (key) headers.authorization = `Bearer ${key}`;
   const response = await fetch("https://openrouter.ai/api/v1/models", {
     headers,
     signal: AbortSignal.timeout(Math.min(requestTimeout(), 20_000)),
@@ -70,7 +74,7 @@ export class OpenRouterProvider implements AiProvider {
   }
 
   async generateCompany(input: CompanyGenerationInput, prompt: string): Promise<ProviderResult> {
-    const key = process.env.OPENROUTER_API_KEY;
+    const key = await getProviderKey("openrouter");
     if (!key) throw new Error("OPENROUTER_API_KEY не настроен на сервере");
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",

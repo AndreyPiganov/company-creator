@@ -58,7 +58,8 @@ h1{margin:22px 0 26px;font-size:clamp(38px,5vw,72px);line-height:1.06;letter-spa
 summary{cursor:pointer;font-size:18px;font-weight:650;letter-spacing:-.02em;padding-right:12px}.faq-list details p{max-width:850px;margin:16px 0 0;color:var(--muted)}
 .team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
 .team article{min-width:0;padding:16px 16px 22px;border:1px solid var(--line);border-radius:20px;background:var(--surface)}
-.portrait{aspect-ratio:3/4;border-radius:12px;background-image:url("assets/team.png");background-size:500% auto;background-position-y:center;background-repeat:no-repeat;background-color:var(--soft)}
+.portrait{aspect-ratio:3/4;border-radius:12px;background-size:500% auto;background-position-y:center;background-repeat:no-repeat;background-color:var(--soft)}
+.portrait-upload{display:block;width:100%;height:auto;object-fit:cover}
 .p0{background-position-x:0}.p1{background-position-x:25%}.p2{background-position-x:50%}.p3{background-position-x:75%}.p4{background-position-x:100%}
 .team h3{margin:20px 0 6px;font-size:21px;letter-spacing:-.025em}.team .role{color:var(--accent);font-size:13px;font-weight:650;min-height:44px}.team article>p:last-child{font-size:14px;line-height:1.7;margin-bottom:0}
 .contact{padding:65px 0;background:var(--soft);border-top:1px solid var(--line)}

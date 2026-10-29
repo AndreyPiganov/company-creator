@@ -19,9 +19,9 @@ export class SitesController {
     return this.sendPreview(id, "index.html", response);
   }
 
-  @Get("sites/:id/preview/assets/team.png")
-  previewTeam(@Param("id") id: string, @Res() response: Response) {
-    return this.sendPreview(id, "assets/team.png", response);
+  @Get("sites/:id/preview/assets/:file")
+  previewTeam(@Param("id") id: string, @Param("file") file: string, @Res() response: Response) {
+    return this.sendPreview(id, `assets/${file}`, response);
   }
 
   @Get("sites/:id/preview/:file")

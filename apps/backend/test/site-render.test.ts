@@ -12,7 +12,7 @@ describe("static site renderer", () => {
     expect(files["product.html"]).toContain(company.product.limitations.ru);
     expect(files["company.html"]).toContain(company.contact.phone);
     expect(files["company.html"]?.match(/class="portrait p/g)).toHaveLength(5);
-    expect(files["styles.css"]).toContain('url("assets/team.png")');
+    expect(files["company.html"]).toContain("assets/person-0.png");
   });
 
   it("keeps canonical facts and contains no unresolved placeholders or remote assets", () => {
