@@ -27,7 +27,6 @@ COPY --from=builder --chown=nextjs:nodejs /workspace/package.json /workspace/pac
 COPY --from=builder --chown=nextjs:nodejs /workspace/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /workspace/apps/frontend/package.json ./apps/frontend/package.json
 COPY --from=builder --chown=nextjs:nodejs /workspace/apps/frontend/.next ./apps/frontend/.next
-COPY --from=builder --chown=nextjs:nodejs /workspace/apps/frontend/public ./apps/frontend/public
 USER nextjs
 EXPOSE 3000
 CMD ["npm", "run", "start", "--workspace", "@company-creator/frontend"]
