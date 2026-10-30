@@ -2,14 +2,12 @@ import { Controller, Get } from "@nestjs/common";
 import { MAX_OUTPUT_TOKENS, OPENAI_MODELS, operationBudget } from "./lib/ai/config";
 import type { ModelDescriptor } from "./lib/ai/types";
 import { getOpenRouterModels } from "./lib/ai/openrouter-provider";
-import { getProviderKey } from "./lib/settings/provider-keys";
 
 @Controller()
 export class ProvidersController {
   @Get("api/providers")
   async providers() {
     const budget = operationBudget();
-    const [openAiKey, openRouterKey] = await Promise.all([getProviderKey("openai"), getProviderKey("openrouter")]);
     const describe = (model: ModelDescriptor) => ({
       id: model.id, label: model.label,
       inputUsdPerMillion: model.inputUsdPerToken * 1_000_000,
@@ -19,7 +17,7 @@ export class ProvidersController {
     });
     let openRouterModels: ReturnType<typeof describe>[] = [];
     let openRouterError: string | null = null;
-    if (openRouterKey) {
+    if (process.env.OPENROUTER_API_KEY) {
       try {
         openRouterModels = (await getOpenRouterModels()).map(describe);
       } catch {
@@ -38,13 +36,13 @@ export class ProvidersController {
         {
           id: "openai",
           label: "OpenAI",
-          configured: Boolean(openAiKey),
+          configured: Boolean(process.env.OPENAI_API_KEY),
           models: OPENAI_MODELS.map(describe),
         },
         {
           id: "openrouter",
           label: "OpenRouter",
-          configured: Boolean(openRouterKey),
+          configured: Boolean(process.env.OPENROUTER_API_KEY),
           models: openRouterModels,
           error: openRouterError,
         },

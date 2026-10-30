@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { Check, Save, TriangleAlert } from "lucide-react";
-import type { CompanyProfile } from "@/lib/domain/company";
+import { Check, Plus, Save, Trash2, TriangleAlert } from "lucide-react";
+import { MAX_TEAM_SIZE, type CompanyProfile } from "@/lib/domain/company";
 import { browserApiUrl } from "@/lib/api";
 import { TeamPhotoInput } from "./team-photo-input";
 
@@ -37,6 +38,23 @@ export function CompanyEditor({ company }: { company: CompanyProfile }) {
     reset,
     formState: { isSubmitting, isDirty },
   } = useForm<CompanyProfile>({ defaultValues: company });
+  const { fields: teamFields, append: appendTeamMember, remove: removeTeamMember } = useFieldArray({ control, name: "team", keyName: "fieldKey" });
+
+  function addTeamMember() {
+    if (teamFields.length >= MAX_TEAM_SIZE) return;
+    appendTeamMember({
+      id: crypto.randomUUID(),
+      name: "",
+      role: { ru: "", de: "" },
+      bio: { ru: "", de: "" },
+      photo: {
+        asset: "/assets/team/team-warm.png",
+        position: teamFields.length % 5,
+        alt: { ru: "Портрет нового сотрудника", de: "Porträt der neuen Person" },
+      },
+    });
+    setNotice({ type: "success", text: "Сотрудник добавлен. Заполните имя, должность и биографию на русском и немецком, затем сохраните карточку." });
+  }
 
   const save = handleSubmit(async (values) => {
     if (uploading || approving) return;
@@ -168,11 +186,12 @@ export function CompanyEditor({ company }: { company: CompanyProfile }) {
       </section>
 
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-7">
-        <h2 className="text-xl font-semibold tracking-[-0.025em]">Команда</h2>
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-semibold tracking-[-0.025em]">Команда · {teamFields.length}</h2><p className="mt-2 text-sm leading-6 text-[var(--muted)]">Генератор создаёт пять сотрудников. Дополнительных участников можно заполнить вручную; в карточке должно оставаться минимум пять.</p></div><button type="button" onClick={addTeamMember} disabled={teamFields.length >= MAX_TEAM_SIZE || uploading > 0} className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-semibold disabled:opacity-50"><Plus size={17} /> Добавить сотрудника</button></div>
         <div className="mt-5 space-y-6">
-          {company.team.map((member, index) => (
-            <fieldset key={member.id} className="rounded-xl border border-[var(--line)] p-4">
-              <legend className="px-2 text-sm font-semibold">{index + 1}. {member.name}</legend>
+          {teamFields.map((member, index) => (
+            <fieldset key={member.fieldKey} className="rounded-xl border border-[var(--line)] p-4">
+              <legend className="px-2 text-sm font-semibold">{index + 1}. {member.name || "Новый сотрудник"}</legend>
+              <div className="mb-4 flex justify-end"><button type="button" onClick={() => removeTeamMember(index)} disabled={teamFields.length <= 5 || uploading > 0} title={teamFields.length <= 5 ? "В команде должно оставаться минимум пять человек" : "Удалить сотрудника"} className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-400"><Trash2 size={15} /> Удалить</button></div>
               <TeamPhotoInput index={index} control={control} setValue={setValue} onBusy={(delta) => setUploading((count) => count + delta)} />
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Имя"><input className={inputClass} {...register(`team.${index}.name`)} /></Field>

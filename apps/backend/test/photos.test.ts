@@ -2,15 +2,12 @@ import "reflect-metadata";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
-import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { z } from "zod";
-import { SettingsController } from "@/settings.controller";
 import { PhotosController } from "@/photos.controller";
-import { getProviderKey, providerKeyStatuses, saveProviderKey } from "@/lib/settings/provider-keys";
-import { safeErrorMessage } from "@/lib/http";
 import { createSiteArtifact } from "@/lib/site/artifacts";
 import { sampleCompanies } from "@/lib/generation/samples";
 import { companyProfileSchema } from "@/lib/domain/company";
@@ -18,17 +15,12 @@ import { companyProfileSchema } from "@/lib/domain/company";
 let app: INestApplication;
 let base: string;
 let root: string;
-const originalKey = "environment-test-key-12345";
-const panelKey = "panel-test-key-987654321";
 
 beforeAll(async () => {
-  root = await mkdtemp(path.join(tmpdir(), "company-settings-"));
-  vi.stubEnv("SETTINGS_PATH", path.join(root, "settings"));
+  root = await mkdtemp(path.join(tmpdir(), "company-photos-"));
   vi.stubEnv("PHOTOS_PATH", path.join(root, "photos"));
   vi.stubEnv("ARTIFACTS_PATH", path.join(root, "sites"));
-  vi.stubEnv("OPENAI_API_KEY", originalKey);
-  vi.stubEnv("OPENROUTER_API_KEY", "");
-  const module = await Test.createTestingModule({ controllers: [SettingsController, PhotosController] }).compile();
+  const module = await Test.createTestingModule({ controllers: [PhotosController] }).compile();
   app = module.createNestApplication({ logger: false });
   await app.listen(0, "127.0.0.1");
   base = await app.getUrl();
@@ -40,48 +32,11 @@ afterAll(async () => {
   vi.unstubAllEnvs();
 });
 
-async function settings(body: unknown, origin = "http://localhost:3000") {
-  return fetch(`${base}/api/settings/providers`, { method: "PATCH", headers: { "content-type": "application/json", origin }, body: JSON.stringify(body) });
-}
-
 async function upload(bytes: Buffer, name = "portrait.png", type = "image/png") {
   const form = new FormData();
   form.set("photo", new Blob([new Uint8Array(bytes)], { type }), name);
   return fetch(`${base}/api/photos`, { method: "POST", body: form });
 }
-
-describe("write-only provider settings", () => {
-  it("persists a panel key, overrides env, redacts errors, and never returns secrets", async () => {
-    const response = await settings({ provider: "openai", action: "save", key: panelKey });
-    expect(response.status).toBe(200);
-    const text = await response.text();
-    expect(text).not.toContain(panelKey);
-    expect(text).not.toContain(originalKey);
-    expect(await getProviderKey("openai")).toBe(panelKey);
-    expect(await providerKeyStatuses()).toContainEqual(expect.objectContaining({ id: "openai", source: "panel" }));
-    expect(z.object({ openai: z.string() }).parse(JSON.parse(await readFile(path.join(root, "settings/provider-keys.json"), "utf8"))).openai).toBe(panelKey);
-    expect((await stat(path.join(root, "settings/provider-keys.json"))).mode & 0o777).toBe(0o600);
-    expect(safeErrorMessage(new Error(`Rejected ${panelKey} and ${originalKey}`))).toBe("Rejected [REDACTED] and [REDACTED]");
-    const publicResponse = await fetch(`${base}/api/settings/providers`);
-    expect(publicResponse.headers.get("cache-control")).toBe("no-store");
-    expect(await publicResponse.text()).not.toContain(panelKey);
-  });
-
-  it("rejects invalid and cross-origin writes without echoing the request", async () => {
-    expect((await settings({ provider: "openai", action: "save", key: "bad key" })).status).toBe(400);
-    const denied = await settings({ provider: "openai", action: "save", key: panelKey }, "https://other.example");
-    expect(denied.status).toBe(403);
-    expect(await denied.text()).not.toContain(panelKey);
-  });
-
-  it("serializes concurrent writes and restores env when the panel key is removed", async () => {
-    await Promise.all([saveProviderKey("openai", panelKey), saveProviderKey("openrouter", "router-test-key-123456")]);
-    expect(await getProviderKey("openrouter")).toBe("router-test-key-123456");
-    expect((await settings({ provider: "openai", action: "remove" })).status).toBe(200);
-    expect(await getProviderKey("openai")).toBe(originalKey);
-    await saveProviderKey("openrouter", null);
-  });
-});
 
 describe("employee portraits", () => {
   it("validates bytes, normalizes images and embeds immutable local copies in site versions", async () => {
@@ -118,8 +73,8 @@ describe("employee portraits", () => {
     const company = structuredClone(sampleCompanies[0]);
     company.team[0].photo.asset = "https://outside.example/face.jpg";
     expect(companyProfileSchema.safeParse(company).success).toBe(false);
-    company.team[0].photo.asset = "/api/photos/../../settings/provider-keys.json";
+    company.team[0].photo.asset = "/api/photos/../../secret.txt";
     expect(companyProfileSchema.safeParse(company).success).toBe(false);
-    expect((await fetch(`${base}/api/photos/provider-keys.json`)).status).toBe(404);
+    expect((await fetch(`${base}/api/photos/secret.txt`)).status).toBe(404);
   });
 });

@@ -43,4 +43,13 @@ describe("static site renderer", () => {
       }
     }
   });
+
+  it("renders every manually added employee", () => {
+    const profile = structuredClone(sampleCompanies[0]);
+    profile.team.push({ ...structuredClone(profile.team[0]), id: crypto.randomUUID(), name: "Manual Employee", photo: { ...profile.team[0].photo, position: 1 } });
+    const files = renderSiteFiles(profile, "ru", "forest");
+    expect(files["company.html"]).toContain("Manual Employee");
+    expect(files["company.html"]?.match(/class="portrait p/g)).toHaveLength(6);
+    expect(files["company.html"]).toContain("assets/person-5.png");
+  });
 });

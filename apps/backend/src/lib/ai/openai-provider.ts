@@ -5,7 +5,6 @@ import { generatedCompanyContentSchema } from "./content-schema";
 import { MAX_OUTPUT_TOKENS, requestTimeout } from "./config";
 import { createProfileFromContent } from "./profile";
 import type { AiProvider, ModelDescriptor, ProviderResult } from "./types";
-import { getProviderKey } from "../settings/provider-keys";
 
 export class OpenAiProvider implements AiProvider {
   readonly id = "openai" as const;
@@ -18,7 +17,7 @@ export class OpenAiProvider implements AiProvider {
   }
 
   async generateCompany(input: CompanyGenerationInput, prompt: string): Promise<ProviderResult> {
-    const key = await getProviderKey("openai");
+    const key = process.env.OPENAI_API_KEY;
     if (!key) throw new Error("OPENAI_API_KEY не настроен на сервере");
     const client = new OpenAI({ apiKey: key, timeout: requestTimeout(), maxRetries: 0 });
     const response = await client.responses.parse({

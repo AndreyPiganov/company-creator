@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle, Sparkles, TriangleAlert } from "lucide-react";
 import { browserApiUrl } from "@/lib/api";
 import { jobStage } from "./job-progress";
-import Link from "next/link";
 
 type Job = {
   id: string;
@@ -117,7 +116,7 @@ export function GenerationForm() {
   return (
     <form onSubmit={submit} className="rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[0_24px_70px_rgba(24,32,29,.08)] sm:p-8">
       <div className="mb-3 flex flex-wrap gap-2 text-xs font-medium text-[var(--accent)]"><span className="rounded-full bg-[var(--accent-soft)] px-3 py-2">Страна: Германия</span><span className="rounded-full bg-[var(--accent-soft)] px-3 py-2">B2B · ИИ для инвестиционных исследований и анализа данных</span></div>
-      <p className="mb-6 text-sm leading-6 text-[var(--muted)]">Карточка содержит русский и немецкий тексты. Язык готового сайта вы выберете на следующем этапе. <Link className="font-semibold text-[var(--accent)] underline" href="/settings">Настроить API-ключи</Link></p>
+      <p className="mb-6 text-sm leading-6 text-[var(--muted)]">Карточка содержит русский и немецкий тексты. Язык готового сайта вы выберете на следующем этапе. API-ключи настраиваются только на сервере через файл <code>.env</code>.</p>
       <div className="grid gap-5 md:grid-cols-2">
         <label className="text-sm font-medium">Название бренда <span className="text-[var(--muted)]">(пусто = случайное)</span><input name="brandName" maxLength={80} className={control} placeholder="Например, Nordlicht Research" /></label>
         <label className="text-sm font-medium">Масштаб<select name="size" className={control} defaultValue="random"><option value="random">Случайный</option><option value="small">Небольшая</option><option value="medium">Средняя</option></select></label>

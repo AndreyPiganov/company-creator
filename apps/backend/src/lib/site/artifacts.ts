@@ -4,6 +4,7 @@ import path from "node:path";
 import type { CompanyProfile, SiteLanguage, SiteTheme } from "../domain/company";
 import { renderSiteFiles } from "./render";
 import { readProfilePhoto, sitePhotoFile } from "../media/photos";
+import { MAX_TEAM_SIZE } from "../domain/company";
 
 export function artifactsRoot(): string {
   return path.resolve(/*turbopackIgnore: true*/ process.env.ARTIFACTS_PATH || path.join(process.cwd(), "data", "sites"));
@@ -63,5 +64,5 @@ export const PREVIEW_FILES: Record<string, string> = {
   "styles.css": "text/css; charset=utf-8",
   "favicon.svg": "image/svg+xml",
   "assets/team.png": "image/png",
-  ...Array.from({ length: 8 }, (_, i) => i).reduce<Record<string, string>>((files, index) => ({ ...files, [`assets/person-${index}.jpg`]: "image/jpeg", [`assets/person-${index}.png`]: "image/png" }), {}),
+  ...Array.from({ length: MAX_TEAM_SIZE }, (_, i) => i).reduce<Record<string, string>>((files, index) => ({ ...files, [`assets/person-${index}.jpg`]: "image/jpeg", [`assets/person-${index}.png`]: "image/png" }), {}),
 };

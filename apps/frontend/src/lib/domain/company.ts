@@ -8,6 +8,7 @@ export const localisedTextSchema = z.object({
 export const companySizeSchema = z.enum(["small", "medium"]);
 export const companyStatusSchema = z.enum(["draft", "approved"]);
 export const generationModeSchema = z.enum(["sample", "offline", "openai", "openrouter"]);
+export const MAX_TEAM_SIZE = 20;
 
 const photoSchema = z.object({
   asset: z.union([z.enum(["/assets/team/team-warm.png", "/assets/team/team-cool.png"]), z.string().regex(/^\/api\/photos\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.jpg$/)]),
@@ -64,7 +65,7 @@ export const companyProfileSchema = z.object({
     limitations: localisedTextSchema,
   }),
   faq: z.array(faqItemSchema).length(5),
-  team: z.array(teamMemberSchema).min(5).max(8),
+  team: z.array(teamMemberSchema).min(5).max(MAX_TEAM_SIZE),
   disclaimer: localisedTextSchema,
   generation: z.object({
     mode: generationModeSchema,

@@ -58,7 +58,7 @@
     "team": {
       "type": "array",
       "minItems": 5,
-      "maxItems": 8,
+      "maxItems": 20,
       "items": { "$ref": "#/$defs/teamMember" }
     },
     "disclaimer": { "$ref": "#/$defs/localisedText" },

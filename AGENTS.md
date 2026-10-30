@@ -13,8 +13,7 @@ Build a local, single-user panel that creates fictional German B2B AI company pr
 - Treat approved company data as mutable only through a revision: editing returns the profile to `draft`.
 - Treat every site version as immutable. Render and export from its saved snapshot, never from the current company row.
 - Generated companies and sites must clearly state that they are fictional project data.
-- Generated sites must not contain forms, accounts, uploads, customer logos, testimonials, or unsupported product features. The local management panel may accept provider keys and employee photo uploads, as explicitly requested by the user.
-- `ТЗ.txt` is local reference material and must remain ignored by Git.
+- Generated sites must not contain forms, accounts, uploads, customer logos, testimonials, or unsupported product features. The local management panel may accept employee photo uploads. Provider keys must only come from the server environment.
 
 ## Commands
 

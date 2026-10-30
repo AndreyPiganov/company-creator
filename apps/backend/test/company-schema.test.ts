@@ -27,6 +27,14 @@ describe("company profile schema", () => {
     const result = validateCompanyConsistency(company);
     expect(result.issues).toContainEqual(expect.objectContaining({ path: "product.summary.ru" }));
   });
+
+  it("accepts manually added employees and rejects a team below the required minimum", () => {
+    const expanded = structuredClone(sampleCompanies[0]);
+    expanded.team.push({ ...structuredClone(expanded.team[0]), id: crypto.randomUUID(), name: "Manual Employee" });
+    expect(validateCompanyConsistency(expanded).profile?.team).toHaveLength(6);
+    expanded.team = expanded.team.slice(0, 4);
+    expect(validateCompanyConsistency(expanded).issues).toContainEqual(expect.objectContaining({ path: "team" }));
+  });
 });
 
 describe("offline generator", () => {
